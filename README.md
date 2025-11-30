@@ -65,114 +65,103 @@ adversarial-neural-crypto/
 
 ## 3. Installation
 
-### Step 1 — Clone the repository
+#### 1. Clone the repository
 ```bash
 git clone https://github.com/ayaalkhatib33/adversarial-neural-crypto.git
 cd adversarial-neural-crypto
-Step 2 — Install dependencies
-bash
-Copy code
+```
+#### 2. Install dependencies
+```bash
 pip install -r requirements.txt
-This installs:
+```
+* This installs:
 
-PyTorch
+  - PyTorch
+  - NumPy
+  - tqdm
+  - Matplotlib (optional)
 
-NumPy
+#### 3. How to Run the Project
+- Train Alice, Bob, and Eve together
+- This trains the full adversarial system:
 
-tqdm
-
-Matplotlib (optional)
-
-4. How to Run the Project
-Train Alice, Bob, and Eve together
-This trains the full adversarial system:
-
-bash
-Copy code
+```bash
 python src/train_symmetric.py
+```
 This script:
 
-generates random plaintexts and keys
-
-trains all three neural networks
-
-logs training loss
-
-saves models into results/symmetric/
+- generates random plaintexts and keys
+- trains all three neural networks
+- logs training loss
+- saves models into results/symmetric/
 
 Evaluate Eve separately (optional)
-bash
-Copy code
+```bash
 python src/eval_eve.py
-This assesses how well Eve can break the learned encryption using the saved models.
+```
+- This assesses how well Eve can break the learned encryption using the saved models.
 
-5. Training Output
+#### 4. Training Output
 After training completes, the following files are generated in results/symmetric/:
 
-File	Description
-alice_bob.pt	Alice & Bob trained communication model
-alice_bob_eve.pt	Full adversarial model including Eve
-training_log.json	Loss curves and metrics over training
+| File              | Description                             |
+| ----------------- | --------------------------------------- |
+| alice_bob.pt      | Alice & Bob trained communication model |
+| alice_bob_eve.pt  | Full adversarial model including Eve    |
+| training_log.json | Loss curves and metrics                 |
 
 Example console output:
 
-sql
-Copy code
+```bash
 Starting train_symmetric main...
 Training symmetric: 100% |██████████| 5000/5000
 Finished train_symmetric without error.
-6. Technical Details
-Bob’s Loss (Reconstruction Error)
+```
+
+#### 5. Technical Details
+Bob’s Loss (Reconstruction Error)  
 Bob learns to recover the plaintext:
 
-ini
-Copy code
+```bash
 L_bob = || plaintext – bob_output ||²
-Eve’s Loss (Attack Error)
+```
+Eve’s Loss (Attack Error)  
 Eve attempts to decode plaintext from ciphertext:
 
-ini
-Copy code
+```bash
 L_eve = || plaintext – eve_output ||²
-Alice and Bob’s Total Objective
+```
+Alice and Bob’s Total Objective  
 Alice and Bob optimize:
 
-ini
-Copy code
+```bash
 L_total = L_bob - L_eve
+```
 This encourages secure communication by:
+- minimizing Bob’s error
+- maximizing Eve’s error
+- Eve optimizes only L_eve.
 
-minimizing Bob’s error
+#### 6. Example Workflow
+- Install dependencies
+- Run train_symmetric.py
+- Inspect training_log.json
+- Use alice_bob.pt to test encryption/decryption
+- Optionally run eval_eve.py to evaluate Eve separately
 
-maximizing Eve’s error
+#### 7. Limitations
+- This system is for research and education only.
+- The learned encryption is not secure for real-world cryptography.
+- The model does not provide guarantees against modern cryptanalysis.
 
-Eve optimizes only L_eve.
+#### 8. References (Required for the Assignment)
+##### Foundational Work
+  - Abadi, M., & Andersen, D. G. (2016).  
+  Learning to Protect Communications with Adversarial Neural Cryptography.
 
-7. Example Workflow
-Install dependencies
+##### Contemporary Work
+  - Chen, Z., Yu, H., & Zhou, Z. (2023).  
+  Neural Cryptography in Deep Learning: Improved Adversarial Encryption Networks.
 
-Run train_symmetric.py
-
-Inspect training_log.json
-
-Use alice_bob.pt to test encryption/decryption
-
-Optionally run eval_eve.py to evaluate Eve separately
-
-8. Limitations
-This system is for research and education only.
-
-The learned encryption is not secure for real-world cryptography.
-
-The model does not provide guarantees against modern cryptanalysis.
-
-9. References (Required for the Assignment)
-Foundational Work
-Abadi, M., & Andersen, D. G. (2016).
-Learning to Protect Communications with Adversarial Neural Cryptography.
-
-Contemporary Work
-Chen, Z., Yu, H., & Zhou, Z. (2023).
-Neural Cryptography in Deep Learning: Improved Adversarial Encryption Networks.
 
 
