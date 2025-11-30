@@ -9,28 +9,29 @@ Three neural networks are trained with competing objectives:
 - **Bob**: Decrypts the ciphertext using the same key.
 - **Eve**: Attempts to intercept the ciphertext and reconstruct the plaintext without the key.
 
-Alice and Bob collaborate to enable secure communication while Eve simultaneously attempts to break it. This adversarial setup forces Alice and Bob to discover an encryption strategy that is hard for Eve to decode.
+Alice and Bob collaborate to enable secure communication while Eve simultaneously attempts to break it. This adversarial setup forces Alice and Bob to discover an encryption strategy that is difficult for Eve to decode.
 
 ---
 
 ## 1. Background
 
 ### Traditional Cryptography  
-Relies on fixed mathematical rules and algorithms. Security is based on computational hardness assumptions.
+Relies on fixed mathematical rules and security assumptions based on computational hardness.
 
 ### Neural Cryptography  
-Instead of fixed rules, neural networks learn how to protect communication through training. Encryption is **learned**, not programmed.
+Neural networks learn encryption transformations directly through training.  
+The encryption mechanism is *learned*, not explicitly programmed.
 
 ### Core Concepts
 
 #### Shared Key  
-Alice and Bob both receive the same random key.  
-Eve does not receive the key and must infer the plaintext from the ciphertext alone.
+- Alice and Bob both receive the same random key.
+- Eve does not receive the key and must infer the plaintext from ciphertext alone.
 
 #### Adversarial Training Dynamics  
-- Alice and Bob minimize Bob’s reconstruction error.  
-- Eve minimizes her reconstruction error.  
-- Alice and Bob also maximize Eve’s error through adversarial gradients.
+- Alice and Bob minimize Bob’s reconstruction error.
+- Eve minimizes her own reconstruction error.
+- Alice and Bob maximize Eve’s error through adversarial gradients.
 
 #### Emergent Learned Encryption  
 The system learns a transformation that:
@@ -92,61 +93,61 @@ This trains the full adversarial system:
 bash
 Copy code
 python src/train_symmetric.py
-What this script does:
+This script:
 
-creates random plaintexts and keys
+generates random plaintexts and keys
 
 trains all three neural networks
 
 logs training loss
 
-saves model weights into results/symmetric/
+saves models into results/symmetric/
 
 Evaluate Eve separately (optional)
 bash
 Copy code
 python src/eval_eve.py
-This assesses how well Eve can break the learned encryption using saved models.
+This assesses how well Eve can break the learned encryption using the saved models.
 
 5. Training Output
-After training completes, the following files are generated:
+After training completes, the following files are generated in results/symmetric/:
 
 File	Description
-alice_bob.pt	Alice & Bob model trained to communicate
-alice_bob_eve.pt	Full model with Eve included
-training_log.json	Loss curves and metrics over training steps
+alice_bob.pt	Alice & Bob trained communication model
+alice_bob_eve.pt	Full adversarial model including Eve
+training_log.json	Loss curves and metrics over training
 
 Example console output:
 
 sql
 Copy code
 Starting train_symmetric main...
-Training symmetric: 100% |██████████| 5000/5000 
+Training symmetric: 100% |██████████| 5000/5000
 Finished train_symmetric without error.
 6. Technical Details
-Loss Functions
 Bob’s Loss (Reconstruction Error)
-Bob tries to match the original plaintext:
+Bob learns to recover the plaintext:
 
 ini
 Copy code
 L_bob = || plaintext – bob_output ||²
 Eve’s Loss (Attack Error)
-Eve attempts to decode the plaintext:
+Eve attempts to decode plaintext from ciphertext:
 
 ini
 Copy code
 L_eve = || plaintext – eve_output ||²
 Alice and Bob’s Total Objective
+Alice and Bob optimize:
 
 ini
 Copy code
 L_total = L_bob - L_eve
-This encourages Alice and Bob to:
+This encourages secure communication by:
 
-communicate well with each other
+minimizing Bob’s error
 
-make Eve's predictions worse
+maximizing Eve’s error
 
 Eve optimizes only L_eve.
 
@@ -157,24 +158,22 @@ Run train_symmetric.py
 
 Inspect training_log.json
 
-Load alice_bob.pt to test encryption/decryption
+Use alice_bob.pt to test encryption/decryption
 
-Optionally run Eve separately to assess model security
+Optionally run eval_eve.py to evaluate Eve separately
 
 8. Limitations
 This system is for research and education only.
 
 The learned encryption is not secure for real-world cryptography.
 
-This implementation does not guarantee resistance to modern cryptographic attacks.
+The model does not provide guarantees against modern cryptanalysis.
 
 9. References (Required for the Assignment)
 Foundational Work
 Abadi, M., & Andersen, D. G. (2016).
 Learning to Protect Communications with Adversarial Neural Cryptography.
-This is the core paper that introduced neural adversarial cryptography.
 
-Contemporary Work Building on the Original Paper
+Contemporary Work
 Chen, Z., Yu, H., & Zhou, Z. (2023).
 Neural Cryptography in Deep Learning: Improved Adversarial Encryption Networks.
-This work expands and improves neural cryptographic architectures and adversarial training stability.
