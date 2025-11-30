@@ -41,7 +41,7 @@ The system learns a transformation that:
 ---
 
 ## 2. Project Structure
-
+```
 adversarial-neural-crypto/
 │
 ├── results/
@@ -60,7 +60,7 @@ adversarial-neural-crypto/
 │
 ├── requirements.txt
 └── README.md
-
+```
 ---
 
 ## 3. Installation
@@ -174,4 +174,5 @@ Learning to Protect Communications with Adversarial Neural Cryptography.
 Contemporary Work
 Chen, Z., Yu, H., & Zhou, Z. (2023).
 Neural Cryptography in Deep Learning: Improved Adversarial Encryption Networks.
+
 
