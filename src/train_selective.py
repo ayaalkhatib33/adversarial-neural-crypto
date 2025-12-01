@@ -16,9 +16,9 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 
-from .data import generate_selective_numeric_batch
-from .models import AliceSelective, BobSelective, EveSelective
-from .utils import ensure_dir, get_device, save_checkpoint, save_json, set_seed
+from data import generate_selective_numeric_batch
+from models import AliceSelective, BobSelective, EveSelective
+from utils import ensure_dir, get_device, save_checkpoint, save_json, set_seed
 
 
 def train_selective(
