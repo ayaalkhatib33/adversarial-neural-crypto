@@ -18,9 +18,9 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 
-from .data import generate_symmetric_batch
-from .models import AliceSymmetric, BobSymmetric, EveSymmetric
-from .utils import get_device, save_json
+from data import generate_symmetric_batch
+from models import AliceSymmetric, BobSymmetric, EveSymmetric
+from utils import get_device, save_json
 
 
 def eval_eve(
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--checkpoint",
         type=str,
-        required=True,
+        default="./results/symmetric/alice_bob.pt",
         help="Path to alice_bob.pt checkpoint produced by train_symmetric.",
     )
     parser.add_argument("--batch_size", type=int, default=512)
