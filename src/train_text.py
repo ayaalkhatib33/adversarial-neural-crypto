@@ -66,6 +66,21 @@ def sample_keys(batch_size: int, key_dim: int, device: torch.device) -> torch.Te
     return torch.rand(batch_size, key_dim, device=device) * 2.0 - 1.0
 
 
+def masked_mse(
+    pred: torch.Tensor,
+    target: torch.Tensor,
+    mask: torch.Tensor,
+    eps: float = 1e-8,
+) -> float:
+    """
+    Mean squared error computed only over entries where mask == 1.
+    mask must be same shape as pred/target.
+    """
+    diff = (pred - target) ** 2 * mask
+    # sum over all entries, normalize by number of active entries
+    return diff.sum() / (mask.sum() + eps)
+
+
 def compute_metrics(
     plaintext: torch.Tensor,
     bob_out: torch.Tensor,
@@ -133,35 +148,45 @@ def train_text_crypto(
     opt_ab = torch.optim.Adam(list(alice.parameters()) + list(bob.parameters()), lr=lr)
     opt_eve = torch.optim.Adam(eve.parameters(), lr=lr)
 
+    # first half of the vector is "sensitive" (for logging only)
     sensitive_mask = torch.zeros(message_dim, device=device)
     sensitive_mask[: message_dim // 2] = 1.0
 
     log: List[Dict] = []
 
     for step in tqdm(range(1, num_steps + 1), desc="Text crypto training"):
+        # fresh batch every step
         plaintext = sample_text_batch(batch_size, seq_len, vocab_size, device)
         keys = sample_keys(batch_size, key_dim, device)
+
+        # mask of active (1) positions in the one-hot plaintext
+        active_mask = (plaintext > 0.5).float()
 
         # ---------- Train Eve ----------
         alice.eval()
         bob.eval()
         eve.train()
 
-        with torch.no_grad():
-            alice_in = torch.cat([plaintext, keys], dim=1)
-            ciphertext = alice(alice_in)
+        alice_in = torch.cat([plaintext, keys], dim=1)
+        ciphertext = alice(alice_in)
 
         eve_out = eve(ciphertext)
-        loss_eve = F.mse_loss(eve_out, plaintext)
+
+        # focus Eve's loss on the active positions only
+        loss_eve = masked_mse(eve_out, plaintext, active_mask)
 
         opt_eve.zero_grad()
         loss_eve.backward()
         opt_eve.step()
 
-        # ---------- Train Alice + Bob ----------
+        # ---------- Train Alice + Bob (adversarially) ----------
         alice.train()
         bob.train()
         eve.eval()
+
+        # freeze Eve parameters so gradients don't change Eve in this step
+        for p in eve.parameters():
+            p.requires_grad_(False)
 
         alice_in = torch.cat([plaintext, keys], dim=1)
         ciphertext = alice(alice_in)
@@ -169,23 +194,36 @@ def train_text_crypto(
         bob_in = torch.cat([ciphertext, keys], dim=1)
         bob_out = bob(bob_in)
 
-        with torch.no_grad():
-            eve_out = eve(ciphertext)
+        # IMPORTANT: no torch.no_grad() here;
+        # we want gradients from Eve's loss to flow back into Alice,
+        # but not to Eve's parameters (they're frozen above).
+        eve_out_for_ab = eve(ciphertext)
 
-        loss_bob = F.mse_loss(bob_out, plaintext)
-        loss_eve_detached = F.mse_loss(eve_out, plaintext)
+        # again, only care about active bits
+        loss_bob = masked_mse(bob_out, plaintext, active_mask)
+        loss_eve_for_ab = masked_mse(eve_out_for_ab, plaintext, active_mask)
 
-        loss_ab = loss_bob - eve_weight * loss_eve_detached
+        # Alice & Bob: minimize Bob loss, maximize Eve loss
+        loss_ab = loss_bob - eve_weight * loss_eve_for_ab
 
         opt_ab.zero_grad()
         loss_ab.backward()
         opt_ab.step()
 
+        # unfreeze Eve for the next Eve step
+        for p in eve.parameters():
+            p.requires_grad_(True)
+
+        # ---------- Logging ----------
         if step % log_every == 0 or step == num_steps:
-            metrics = compute_metrics(plaintext, bob_out, eve_out, sensitive_mask)
+            # for logging, we can still use the full-vector metrics
+            metrics = compute_metrics(plaintext, bob_out, eve_out_for_ab.detach(), sensitive_mask)
             metrics["step"] = step
+            metrics["loss_bob_active"] = loss_bob.item()
+            metrics["loss_eve_active"] = loss_eve.item()
             log.append(metrics)
 
+    # ---- Save models and training log ----
     torch.save({"alice": alice.state_dict(), "bob": bob.state_dict()}, "results/text/alice_bob.pt")
     torch.save(
         {"alice": alice.state_dict(), "bob": bob.state_dict(), "eve": eve.state_dict()},
