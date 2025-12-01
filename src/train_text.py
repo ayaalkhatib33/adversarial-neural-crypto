@@ -5,6 +5,13 @@ Usage:
     python -m src.train_text
 """
 
+"""
+Train the adversarial neural cryptography model on text-based data.
+
+Usage:
+    python -m src.train_text
+"""
+
 import os
 import json
 from typing import List, Dict
@@ -15,9 +22,6 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-# FIXED IMPORTS — REMOVE OLD RELATIVE DOT IMPORTS
-from src.data import generate_text_batch
-from src.models import Alice, Bob, Eve
 from src.utils import *
 
 

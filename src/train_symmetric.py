@@ -6,7 +6,6 @@ Run with:
 
     python -m src.train_symmetric
 """
-
 from __future__ import annotations
 
 from typing import Dict, List
@@ -16,9 +15,10 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 
-from data import generate_symmetric_batch
-from models import AliceSymmetric, BobSymmetric, EveSymmetric
-from utils import ensure_dir, get_device, save_checkpoint, save_json, set_seed
+from src.data import generate_symmetric_batch
+from src.models import AliceSymmetric, BobSymmetric, EveSymmetric
+from src.utils import ensure_dir, get_device, save_checkpoint, save_json, set_seed
+
 
 
 def train_symmetric(
