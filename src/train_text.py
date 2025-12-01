@@ -15,12 +15,6 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-# FIXED IMPORTS — REMOVE OLD RELATIVE DOT IMPORTS
-from src.data import generate_text_batch
-from src.models import Alice, Bob, Eve
-from src.utils import *
-
-
 
 class MLP(nn.Module):
     """Simple fully-connected network used for Alice, Bob, Eve."""
