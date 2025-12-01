@@ -21,12 +21,6 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from tqdm import tqdm
 
-# our imports (fixed)
-from src.data import generate_image_batch
-from src.models import Alice, Bob, Eve
-from src.utils import *
-
-
 # -----------------------------
 #  Model definitions
 # -----------------------------
